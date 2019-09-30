@@ -1,6 +1,11 @@
 # ROS Tools
 
-A collection of tools for ROS bags.
+A collection of tools for ROS bags, including:
+
+  * `scripts/export_csv.py`: The tool to export topics from ROS bags to csv
+  format files.
+    - __docs__: type in `python scripts/export_csv.py -h` for help.
+    - __requires__: `rosbag`, `tqdm`.
 
 
 ## Contributors
