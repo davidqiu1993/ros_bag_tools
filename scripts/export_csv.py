@@ -13,33 +13,33 @@ __copyright__   = "Copyright (C) 2019, Dicong Qiu."
 __license__     = "MIT"
 
 
-import os
+import os, argparse
 import rosbag
 import csv
-import tqdm
+from tqdm import tqdm
 
 
-def flatten_topic_fields(msg_type, field_prefix=''):
+def flatten_topic_fields(msg, field_prefix=''):
     """
     Flatten the fields of a topic.
 
-    @param msg_type The message type for topic.
+    @param msg A message for topic.
     @param field_prefix The prefix of the current layer of topic fields.
-    @return fields The flattened topic fields.
+    @return fieldnames The flattened topic fields.
     """
 
-    assert(hasattr(msg_type, '__slots__'))
+    assert(hasattr(msg, '__slots__'))
 
-    fields = []
+    fieldnames = []
 
-    for s in msg_type.__slots__:
-        field = '.'.join(field_prefix, s)
-        if not hasattr(msg_type[s], '__slots__'):
-            fields.append(field)
+    for s in msg.__slots__:
+        fieldname = '.'.join([field_prefix, s]) if field_prefix else s
+        if not hasattr(msg.__getattribute__(s), '__slots__'):
+            fieldnames.append(fieldname)
         else:
-            fields += flatten_topic_fields(msg_type[s], field_prefix=field)
+            fieldnames += flatten_topic_fields(msg.__getattribute__(s), field_prefix=fieldname)
 
-    return fields
+    return fieldnames
 
 
 def get_field_value(msg, fieldname):
@@ -77,18 +77,28 @@ def export_topic_to_csv(path_bag, topic_name, path_csv, progress=False):
     # open bag file
     bag = rosbag.Bag(path_bag)
 
+    # initialize progress bar
+    if progress:
+        ttinfo = bag.get_type_and_topic_info()
+        pbar = tqdm(
+            desc  = topic_name,
+            total = ttinfo.topics[topic_name].message_count,
+            unit  = 'msg',
+        )
+
     # read messages from the bag file
-    for (topic, msg, t) in tqdm(bag.read_messages(topics=list([topic_name]))):
+    for (topic, msg, t) in bag.read_messages(topics=list([topic_name])):
         # flatten topic fields and open output csv file if necessary
         if fieldnames is None:
             # flatten the topic fields
-            fieldnames = flatten_topic_fields(type(msg))
+            fieldnames = flatten_topic_fields(msg)
 
             # open csv file
             csv_file = open(path_csv, 'w')
             csv_writer = csv.DictWriter(
                 csv_file, fieldnames=(['_ros_time_sec'] + fieldnames)
             )
+            csv_writer.writeheader()
 
         # extract values from the message and write to the csv file
         row = {}
@@ -96,6 +106,10 @@ def export_topic_to_csv(path_bag, topic_name, path_csv, progress=False):
         for fieldname in fieldnames:
             row[fieldname] = get_field_value(msg, fieldname)
         csv_writer.writerow(row)
+
+        # update progress bar
+        if progress:
+            pbar.update(1)
 
     # close the csv file
     csv_file.close()
@@ -139,7 +153,7 @@ def main():
 
     args = parse_arguments()
 
-    export_topic_to_csv(args.bag, args.topic, args.csv)
+    export_topic_to_csv(args.bag, args.topic, args.csv, progress=True)
 
 
 if __name__ == "__main__":
