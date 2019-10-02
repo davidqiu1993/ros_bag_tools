@@ -123,22 +123,22 @@ def parse_arguments():
     """
 
     parser = argparse.ArgumentParser(
-        description='Train model.'
+        description='Export ROS bag topic to csv format.'
     )
 
     parser.add_argument(
-        '-b', '--bag', required=True, type=str,
-        help='path to the bag file'
+        '-b', '--bags', nargs='+', required=True, type=str,
+        help='path to the bag files'
     )
 
     parser.add_argument(
-        '-t', '--topic', required=True, type=str,
-        help='name of the topic to export'
+        '-t', '--topics', nargs='+', required=True, type=str,
+        help='names of the topics to export'
     )
 
     parser.add_argument(
-        '-c', '--csv', required=True, type=str,
-        help='path to the csv file to export to'
+        '-o', '--outdir', required=True, type=str,
+        help='path to directory to output the csv files'
     )
 
     args = parser.parse_args()
@@ -153,7 +153,24 @@ def main():
 
     args = parse_arguments()
 
-    export_topic_to_csv(args.bag, args.topic, args.csv, progress=True)
+    for path_bag in args.bags:
+        for topic_name in args.topics:
+            # construct csv file name prefix
+            fname_csv_prefix = os.path.splitext(os.path.basename(path_bag))[0]
+
+            # construct csv file name postfix
+            fname_csv_postfix = '.'.join(topic_name.split('/'))
+            while fname_csv_postfix[0] == '.':
+                fname_csv_postfix = fname_csv_postfix[1:]
+
+            # construct csv path
+            path_csv = os.path.join(
+                args.outdir,
+                '%s.%s.csv' % (fname_csv_prefix, fname_csv_postfix)
+            )
+
+            # export topic to csv file
+            export_topic_to_csv(path_bag, topic_name, path_csv, progress=True)
 
 
 if __name__ == "__main__":
