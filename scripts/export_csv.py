@@ -154,6 +154,8 @@ def main():
     args = parse_arguments()
 
     for path_bag in args.bags:
+        print('Exporting from "%s":' % (path_bag))
+
         for topic_name in args.topics:
             # construct csv file name prefix
             fname_csv_prefix = os.path.splitext(os.path.basename(path_bag))[0]
