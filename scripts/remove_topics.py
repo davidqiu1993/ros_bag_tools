@@ -50,7 +50,7 @@ def remove_topics_from_bag(path_bag, topics, path_outbag, progress=False):
         for topic_name in topics_remain:
             total += ttinfo.topics[topic_name].message_count
         pbar = tqdm(
-            desc  = topic_name,
+            desc  = 'Exporting',
             total = total,
             unit  = 'msg',
         )
