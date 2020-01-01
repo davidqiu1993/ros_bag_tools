@@ -7,6 +7,14 @@ A collection of tools for ROS bags, including:
     - __docs__: type in `python scripts/export_csv.py -h` for help.
     - __requires__: `rosbag`, `tqdm`.
 
+  * `scripts/pick_topics.py`: The tool to pick topics from ROS bags.
+    - __docs__: type in `python scripts/pick_topics.py -h` for help.
+    - __requires__: `rosbag`, `tqdm`.
+
+  * `scripts/remove_topics.py`: The tool to remove topics from ROS bags.
+    - __docs__: type in `python scripts/remove_topics.py -h` for help.
+    - __requires__: `rosbag`, `tqdm`.
+
 
 ## Contributors
 
